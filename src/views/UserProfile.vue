@@ -19,6 +19,8 @@ import UserProfilePosts from "../components/UserProfilePosts.vue";
 import { reactive } from "vue";
 import UserProfileWrite from "../components/UseProfileWrite.vue";
 import { useRoute } from "vue-router";
+import $ from "jquery";
+import { useStore } from "vuex";
 
 export default {
   name: "UserProfile",
@@ -31,36 +33,41 @@ export default {
   setup() {
     const route = useRoute();
     const userId = route.params.userId;
-    console.log(userId);
-    const user = reactive({
-      id: "1",
-      username: "TianChi",
-      lastname: "Tian",
-      firstname: "Chi",
-      followerCount: 1,
-      is_followed: true,
+    const user = reactive({});
+    const posts = reactive({});
+    const store = useStore();
+    $.ajax({
+      url: "https://app165.acapp.acwing.com.cn/myspace/getinfo/",
+      type: "GET",
+      data: {
+        user_id: userId,
+      },
+      headers: {
+        Authorization: "Bearer " + store.state.user.access,
+      },
+      success(resp) {
+        user.id = resp.id;
+        user.username = resp.username;
+        user.photo = resp.photo;
+        user.followerCount = resp.followerCount;
+        user.is_followed = resp.is_followed;
+      },
     });
 
-    const posts = reactive({
-      count: 3,
-      posts: [
-        {
-          id: 1,
-          userId: 1,
-          content: "1adfa",
-        },
-        {
-          id: 2,
-          userId: 3,
-          content: "dasfd6",
-        },
-        {
-          id: 3,
-          userId: 4,
-          content: "dsafdasdaf6",
-        },
-      ],
+    $.ajax({
+      url: "https://app165.acapp.acwing.com.cn/myspace/post/",
+      type: "GET",
+      data: {
+        user_id: userId,
+      },
+      headers: {
+        Authorization: "Bearer " + store.state.user.access,
+      },
+      success(resp) {
+        posts.posts = resp;
+      },
     });
+
     const follow = () => {
       if (user.is_followed) return;
       user.is_followed = true;
